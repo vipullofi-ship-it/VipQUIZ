@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEET AI Quiz Practice</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>NEET AI Quiz Practice</h1>
+
+        <div id="quiz-setup">
+            <div class="input-group">
+                <label for="subject-select">Select Subject:</label>
+                <select id="subject-select">
+                    <option value="">-- Choose Subject --</option>
+                    <option value="botany">Botany</option>
+                    <option value="zoology">Zoology</option>
+                    <option value="physics">Physics</option>
+                    <option value="chemistry">Chemistry</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="chapter-select">Select Chapter:</label>
+                <select id="chapter-select" disabled>
+                    <option value="">-- Select Chapter --</option>
+                    <!-- Chapters will be populated dynamically by JavaScript -->
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="question-limit">Number of Questions:</label>
+                <input type="number" id="question-limit" value="10" min="1" max="50">
+            </div>
+
+            <p style="font-size: 0.9em; color: gray;">
+                Note: Google AI API Key is handled securely by the backend server.
+                Ensure your backend (`app.py`) is running!
+            </p>
+
+            <button id="start-quiz-btn" disabled>Start Quiz</button>
+        </div>
+
+        <div id="quiz-area" style="display:none;">
+            <h2 id="current-question-number">Question 1</h2>
+            <p id="question-text"></p>
+            <div id="options-container">
+                <!-- Options will be populated here -->
+            </div>
+            <button id="next-question-btn">Next Question</button>
+            <button id="submit-quiz-btn" style="display:none;">Submit Quiz</button>
+        </div>
+
+        <div id="result-area" style="display:none;">
+            <h2>Quiz Results</h2>
+            <p id="score-display"></p>
+            <h3>Detailed Analysis:</h3>
+            <div id="detailed-results">
+                <!-- Detailed results will be shown here, including wrong answers with AI solutions -->
+            </div>
+            <button id="restart-quiz-btn">Start New Quiz</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
