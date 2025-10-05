@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let userAnswers = [];
     let questionStartTime;
 
-    // Chapters are still defined here for dynamic population of the select dropdown
     const chapters = {
         botany: ["Plant Kingdom", "Photosynthesis", "Cell Cycle", "Mineral Nutrition", "Reproduction in Flowering Plants"],
         zoology: ["Animal Kingdom", "Human Physiology", "Genetics and Evolution", "Human Reproduction", "Digestion and Absorption"],
@@ -28,23 +27,21 @@ document.addEventListener('DOMContentLoaded', () => {
         chemistry: ["Organic Chemistry", "Inorganic Chemistry", "Physical Chemistry", "Atomic Structure", "Chemical Bonding"]
     };
 
-    // --- Enable/Disable Start Quiz Button ---
     function updateStartButtonState() {
         const isSubjectSelected = subjectSelect.value !== '';
         const isChapterSelected = chapterSelect.value !== '';
-        // No API key check on frontend, as it's handled by backend
         startQuizBtn.disabled = !(isSubjectSelected && isChapterSelected);
     }
 
     subjectSelect.addEventListener('change', () => {
         const selectedSubject = subjectSelect.value;
-        chapterSelect.innerHTML = '<option value="">-- Select Chapter --</option>'; // Clear previous chapters
+        chapterSelect.innerHTML = '<option value="">-- Select Chapter --</option>';
         chapterSelect.disabled = true;
 
         if (selectedSubject && chapters[selectedSubject]) {
             chapters[selectedSubject].forEach(chapter => {
                 const option = document.createElement('option');
-                option.value = chapter; // Use full chapter name for backend
+                option.value = chapter;
                 option.textContent = chapter;
                 chapterSelect.appendChild(option);
             });
@@ -54,11 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     chapterSelect.addEventListener('change', updateStartButtonState);
-    // Removed API key input listener as it's no longer on frontend
 
     startQuizBtn.addEventListener('click', async () => {
         const selectedSubject = subjectSelect.value;
-        const selectedChapter = chapterSelect.value; // Use the value directly
+        const selectedChapter = chapterSelect.value;
         const questionLimit = parseInt(questionLimitInput.value);
 
         if (!selectedSubject || !selectedChapter || isNaN(questionLimit) || questionLimit < 1) {
@@ -70,8 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startQuizBtn.disabled = true;
 
         try {
-            // --- ACTUAL AI API CALL (TO OUR LOCAL BACKEND) ---
-            const response = await fetch('http://localhost:5000/generate_quiz', {
+            const response = await fetch('https://vipquiz-2.onrender.com/generate_quiz', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -120,10 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const question = currentQuiz[index];
         currentQuestionNumber.textContent = `Question ${index + 1} of ${currentQuiz.length}`;
-        questionText.innerHTML = question.question; // Use innerHTML in case of formatting
-        optionsContainer.innerHTML = ''; // Clear previous options
+        questionText.innerHTML = question.question;
+        optionsContainer.innerHTML = '';
 
-        // Shuffle options to prevent AI from always putting correct answer in same position
         const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
 
         shuffledOptions.forEach((option, i) => {
@@ -137,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsContainer.appendChild(label);
         });
 
-        // Set up next/submit button visibility
         if (index === currentQuiz.length - 1) {
             nextQuestionBtn.style.display = 'none';
             submitQuizBtn.style.display = 'block';
@@ -146,12 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
             submitQuizBtn.style.display = 'none';
         }
 
-        questionStartTime = Date.now(); // Record start time for this question
+        questionStartTime = Date.now();
     }
 
     function recordAnswer() {
         const selectedOption = document.querySelector('input[name="question-option"]:checked');
-        const timeTaken = Date.now() - questionStartTime; // Time in ms
+        const timeTaken = Date.now() - questionStartTime;
 
         userAnswers.push({
             questionId: currentQuiz[currentQuestionIndex].id,
@@ -159,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedAnswer: selectedOption ? selectedOption.value : null,
             correctAnswer: currentQuiz[currentQuestionIndex].correctAnswer,
             timeTaken: timeTaken,
-            solution: currentQuiz[currentQuestionIndex].solution // Store AI solution
+            solution: currentQuiz[currentQuestionIndex].solution
         });
     }
 
@@ -178,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Please select an option before submitting the quiz.');
             return;
         }
-        recordAnswer(); // Record the last answer
+        recordAnswer();
         submitQuiz();
     });
 
@@ -187,11 +180,10 @@ document.addEventListener('DOMContentLoaded', () => {
         resultAreaDiv.style.display = 'block';
 
         let score = 0;
-        detailedResultsDiv.innerHTML = 'Analyzing results with AI...'; // Show a loading message
+        detailedResultsDiv.innerHTML = 'Analyzing results with AI...';
 
-        // Optionally, send user answers to backend for AI-powered detailed analysis
         try {
-            const analysisResponse = await fetch('http://localhost:5000/analyze_results', {
+            const analysisResponse = await fetch('https://vipquiz-2.onrender.com/analyze_results', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -207,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const analysisData = await analysisResponse.json();
-            detailedResultsDiv.innerHTML = ''; // Clear loading message
+            detailedResultsDiv.innerHTML = '';
 
             userAnswers.forEach((answer, index) => {
                 const isCorrect = answer.selectedAnswer === answer.correctAnswer;
@@ -227,18 +219,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 detailedResultsDiv.appendChild(resultItem);
             });
 
-            // Add overall feedback if available from AI
             if (analysisData.overallFeedback) {
                 const feedbackDiv = document.createElement('div');
                 feedbackDiv.classList.add('result-item');
                 feedbackDiv.innerHTML = `<h3>Overall AI Feedback:</h3><p>${analysisData.overallFeedback}</p>`;
-                detailedResultsDiv.prepend(feedbackDiv); // Add at the top
+                detailedResultsDiv.prepend(feedbackDiv);
             }
 
         } catch (error) {
             console.error("Error fetching detailed analysis:", error);
             detailedResultsDiv.innerHTML = '<p style="color: red;">Failed to get detailed AI analysis. Displaying basic results.</p>';
-            // Fallback to basic display if AI analysis fails
             userAnswers.forEach((answer, index) => {
                 const isCorrect = answer.selectedAnswer === answer.correctAnswer;
                 if (isCorrect) score++;
@@ -255,8 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         scoreDisplay.textContent = `You scored ${score} out of ${currentQuiz.length}!`;
-        startQuizBtn.textContent = 'Start Quiz'; // Reset button text
-        updateStartButtonState(); // Re-check button state
+        startQuizBtn.textContent = 'Start Quiz';
+        updateStartButtonState();
     }
 
     restartQuizBtn.addEventListener('click', () => {
@@ -269,6 +259,5 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStartButtonState();
     });
 
-    // Initial state setup
     updateStartButtonState();
 });
